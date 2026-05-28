@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block title %}{{ workflow.name }} — Builder | {{ app_name }}{% endblock %}
+{% block header_title %}Workflow Builder{% endblock %}
+{% block extra_head %}
+<link href="/static/workflow/drawflow/drawflow.min.css?v={{ workflow.version }}" rel="stylesheet" type="text/css" />
+<link href="/static/workflow/workflow-builder.css?v={{ workflow.version }}" rel="stylesheet" type="text/css" />
+{% endblock %}
+{% block content %}
+<div class="toolbar py-5" id="kt_toolbar">
+    <div class="container-fluid d-flex flex-stack flex-wrap gap-3">
+        <div class="d-flex flex-column">
+            <h1 class="text-dark fw-bold fs-2 mb-1">{{ workflow.name }}</h1>
+            <ul class="breadcrumb breadcrumb-separatorless fw-semibold fs-7 my-0">
+                <li class="breadcrumb-item text-muted">
+                    <a href="{{ back_url }}" class="text-muted text-hover-primary">
+                        {% if workflow.is_template %}Templates{% else %}Workflows{% endif %}
+                    </a>
+                </li>
+                <li class="breadcrumb-item"><span class="bullet bg-gray-400 w-5px h-2px"></span></li>
+                <li class="breadcrumb-item text-dark">Builder</li>
+            </ul>
+            {% if workflow.is_template %}
+            <span class="badge badge-light-info mt-2 align-self-start">Template — edits apply to this template</span>
+            {% endif %}
+        </div>
+        <div class="d-flex flex-wrap gap-2">
+            <button type="button" class="btn btn-light" id="btn-reload-graph">Reload</button>
+            <button type="button" class="btn btn-primary" id="btn-save-graph">Save graph</button>
+        </div>
+    </div>
+</div>
+<div class="post fs-6 d-flex flex-column-fluid">
+    <div class="container-fluid py-6">
+        {% if flash == 'saved' %}
+        <div class="alert alert-success mb-4">Graph saved successfully.</div>
+        {% endif %}
+        <div id="builder-status" class="alert alert-secondary d-none mb-4" role="status"></div>
+        <div class="row g-4">
+            <div class="col-lg-2">
+                <div class="card">
+                    <div class="card-header border-0 pt-5 pb-0">
+                        <h3 class="fw-bold text-dark fs-6 mb-0">Add node</h3>
+                    </div>
+                    <div class="card-body pt-4 wf-palette d-grid gap-2">
+                        <button type="button" class="btn btn-light-primary btn-sm" id="btn-add-agent">Agent</button>
+                        <button type="button" class="btn btn-light-warning btn-sm" id="btn-add-condition">Condition</button>
+                        <button type="button" class="btn btn-light-success btn-sm" id="btn-add-end">End</button>
+                        <button type="button" class="btn btn-light-info btn-sm" id="btn-add-channel">Channel</button>
+                    </div>
+                </div>
+                <p class="text-gray-500 fs-8 mt-4 mb-0">
+                    Drag from output ports to inputs. Condition: top = OK, bottom = Low.
+                    Click <strong>Save graph</strong> to store nodes, connections, and layout.
+                </p>
+            </div>
+            <div class="col-lg-10">
+                <div id="drawflow"></div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+window.WORKFLOW_BUILDER_CONFIG = {
+    workflowId: {{ workflow.id }},
+    graphJson: {{ graph_json | tojson }},
+    agents: {{ agents | tojson }}
+};
+</script>
+<script src="/static/workflow/drawflow/drawflow.min.js?v={{ workflow.version }}"></script>
+<script src="/static/workflow/workflow-graph.js?v={{ workflow.version }}"></script>
+<script src="/static/workflow/workflow-builder.js?v={{ workflow.version }}"></script>
+{% endblock %}

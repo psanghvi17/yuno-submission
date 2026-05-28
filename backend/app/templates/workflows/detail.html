@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+{% block title %}{{ workflow.name }} | {{ app_name }}{% endblock %}
+{% block header_title %}{{ workflow.name }}{% endblock %}
+{% block content %}
+<div class="toolbar py-5" id="kt_toolbar">
+    <div class="container-fluid d-flex flex-stack flex-wrap">
+        <div class="d-flex flex-column">
+            <h1 class="text-dark fw-bold fs-2 mb-1">{{ workflow.name }}</h1>
+            <ul class="breadcrumb breadcrumb-separatorless fw-semibold fs-7 my-0">
+                <li class="breadcrumb-item text-muted"><a href="/workflows" class="text-muted text-hover-primary">Workflows</a></li>
+                <li class="breadcrumb-item"><span class="bullet bg-gray-400 w-5px h-2px"></span></li>
+                <li class="breadcrumb-item text-dark">{{ workflow.name }}</li>
+            </ul>
+        </div>
+        <div class="d-flex gap-2 align-items-center flex-wrap justify-content-end">
+            <button type="submit" form="workflow-run-form" class="btn btn-success">Run workflow</button>
+            <a href="/workflows/{{ workflow.id }}/edit" class="btn btn-primary">Open Builder</a>
+            <form method="post" action="/workflows/{{ workflow.id }}/delete"
+                  onsubmit="return confirm('Delete this workflow?');">
+                <button type="submit" class="btn btn-light-danger">Delete</button>
+            </form>
+        </div>
+    </div>
+</div>
+<div class="post fs-6 d-flex flex-column-fluid">
+    <div class="container-xxl py-10">
+        {% if flash == 'created' %}
+        <div class="alert alert-success mb-6">Workflow created successfully.</div>
+        {% elif flash == 'updated' %}
+        <div class="alert alert-success mb-6">Workflow saved successfully.</div>
+        {% elif flash == 'from_template' %}
+        <div class="alert alert-success mb-6">Created from template. Edit details below or open the builder when available.</div>
+        {% elif flash == 'run_error' %}
+        <div class="alert alert-danger mb-6">Could not start the workflow run. Check that the graph has agent nodes.</div>
+        {% endif %}
+        <div class="row g-6">
+            <div class="col-lg-5">
+                <div class="card">
+                    <div class="card-header border-0 pt-6">
+                        <h3 class="fw-bold text-dark mb-0">Details</h3>
+                    </div>
+                    <div class="card-body pt-0">
+                        <form method="post" action="/workflows/{{ workflow.id }}">
+                            <div class="mb-6">
+                                <label class="form-label required">Name</label>
+                                <input type="text" name="name" class="form-control {% if errors.name %}is-invalid{% endif %}"
+                                       value="{{ form.name }}" required />
+                                {% if errors.name %}<div class="invalid-feedback">{{ errors.name }}</div>{% endif %}
+                            </div>
+                            <div class="mb-6">
+                                <label class="form-label">Description</label>
+                                <textarea name="description" class="form-control" rows="4">{{ form.description }}</textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Save</button>
+                        </form>
+                    </div>
+                </div>
+                <div class="card mt-6">
+                    <div class="card-header border-0 pt-6">
+                        <h3 class="fw-bold text-dark mb-0">Run workflow</h3>
+                    </div>
+                    <div class="card-body pt-0">
+                        <p class="text-gray-600 fs-7 mb-4">
+                            <strong>Task</strong> is what the agent must do on this run (separate from the agent system prompt).
+                        </p>
+                        <form id="workflow-run-form" method="post" action="/workflows/{{ workflow.id }}/run">
+                            <label class="form-label required">Task for this run</label>
+                            <textarea name="task" class="form-control" rows="3" required
+                                      placeholder="e.g. Explain what Docker is in two sentences.">{{ default_run_task }}</textarea>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-7">
+                <div class="card mb-6">
+                    <div class="card-header border-0 pt-6">
+                        <h3 class="fw-bold text-dark mb-0">Graph summary</h3>
+                    </div>
+                    <div class="card-body pt-0">
+                        <p class="text-gray-600 mb-2"><strong>Nodes:</strong> {{ node_count }}</p>
+                        <p class="text-gray-600 mb-2"><strong>Version:</strong> v{{ workflow.version }}</p>
+                        <a href="/workflows/{{ workflow.id }}/edit" class="btn btn-sm btn-light-primary">Open Builder</a>
+                        <p class="text-gray-500 fs-8 mt-3 mb-0">Edit the flow diagram in the builder, then click <strong>Save graph</strong>.</p>
+                    </div>
+                </div>
+                {% if workflow.agent_links %}
+                <div class="card">
+                    <div class="card-header border-0 pt-6">
+                        <h3 class="fw-bold text-dark mb-0">Agent links</h3>
+                    </div>
+                    <div class="card-body pt-0">
+                        <div class="table-responsive">
+                            <table class="table align-middle table-row-dashed fs-6 gy-3">
+                                <thead>
+                                    <tr class="text-start text-gray-500 fw-bold fs-7 text-uppercase">
+                                        <th>Node ID</th>
+                                        <th>Agent ID</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for link in agent_links_pagination.items %}
+                                    <tr>
+                                        <td class="fw-semibold text-gray-800">{{ link.node_id }}</td>
+                                        <td class="text-gray-600">{{ link.agent_id }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% with pagination=agent_links_pagination, query_extra=links_query_extra, page_param='links_page' %}
+                        {% include "partials/pagination.html" %}
+                        {% endwith %}
+                    </div>
+                </div>
+                {% endif %}
+                <div class="card mt-6">
+                    <div class="card-header border-0 pt-6 d-flex justify-content-between">
+                        <h3 class="fw-bold text-dark mb-0">Recent runs</h3>
+                        <a href="/runs" class="btn btn-sm btn-light">All runs</a>
+                    </div>
+                    <div class="card-body pt-0">
+                        {% if recent_runs %}
+                        <div class="table-responsive">
+                            <table class="table align-middle table-row-dashed fs-7 gy-2">
+                                <thead>
+                                    <tr class="text-gray-500 fw-bold text-uppercase">
+                                        <th>Run</th>
+                                        <th>Status</th>
+                                        <th>Error</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for run in recent_runs %}
+                                    <tr>
+                                        <td><a href="/runs/{{ run.id }}" class="fw-bold text-hover-primary">#{{ run.id }}</a></td>
+                                        <td>
+                                            {% if run.status == 'failed' %}
+                                            <span class="badge badge-light-danger">Failed</span>
+                                            {% elif run.status == 'completed' %}
+                                            <span class="badge badge-light-success">Completed</span>
+                                            {% elif run.status == 'cancelled' %}
+                                            <span class="badge badge-light-dark">Stopped</span>
+                                            {% else %}
+                                            <span class="badge badge-light-primary">{{ run.status }}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-danger fs-8">{{ run.error or '—' }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% with pagination=runs_pagination, query_extra=runs_query_extra, page_param='runs_page' %}
+                        {% include "partials/pagination.html" %}
+                        {% endwith %}
+                        {% else %}
+                        <p class="text-gray-500 mb-0">No runs yet. Enter a task below and use <strong>Run workflow</strong> at the top.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

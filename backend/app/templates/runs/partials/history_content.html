@@ -1,0 +1,82 @@
+<div class="run-history-content">
+    <div class="d-flex flex-wrap gap-3 align-items-center mb-5">
+        {% if run.status == 'completed' %}
+        <span class="badge badge-light-success">Completed</span>
+        {% elif run.status == 'failed' %}
+        <span class="badge badge-light-danger">Failed</span>
+        {% elif run.status == 'running' %}
+        <span class="badge badge-light-primary">Running</span>
+        {% elif run.status == 'pending' %}
+        <span class="badge badge-light-warning">Pending</span>
+        {% else %}
+        <span class="badge badge-light">{{ run.status }}</span>
+        {% endif %}
+        <span class="text-gray-600 fs-7">Triggered by <strong>{{ run.triggered_by }}</strong></span>
+        <span class="text-gray-600 fs-7">Cost <strong>${{ run.total_cost_usd }}</strong></span>
+        {% if run.finished_at %}
+        <span class="text-gray-500 fs-8">Finished {{ run.finished_at }}</span>
+        {% endif %}
+    </div>
+
+    {% if run.error %}
+    <div class="alert alert-danger mb-5">
+        <strong>Run failed</strong>
+        <p class="mb-0 mt-2">{{ run.error }}</p>
+    </div>
+    {% endif %}
+
+    <h4 class="fw-bold text-dark fs-6 mb-4">Agent responses</h4>
+    {% if run.messages %}
+    {% for msg in run.messages %}
+    <div class="border border-gray-200 rounded p-4 mb-4 {% if msg.role == 'assistant' %}bg-light-primary bg-opacity-10{% endif %}">
+        <div class="d-flex justify-content-between flex-wrap gap-2 mb-2">
+            <span class="badge {% if msg.role == 'assistant' %}badge-light-success{% elif msg.role == 'user' %}badge-light-info{% else %}badge-light-primary{% endif %}">
+                {{ msg.role }}
+            </span>
+            <span class="text-gray-500 fs-8">{{ msg.created_at }}</span>
+        </div>
+        <p class="text-gray-800 mb-0" style="white-space: pre-wrap;">{{ msg.content }}</p>
+        <div class="text-gray-500 fs-8 mt-2">
+            {% if msg.from_agent_id %}
+            {{ agent_names.get(msg.from_agent_id, 'Agent ' ~ msg.from_agent_id) }}
+            {% else %}
+            —
+            {% endif %}
+            →
+            {% if msg.to_agent_id %}
+            {{ agent_names.get(msg.to_agent_id, 'Agent ' ~ msg.to_agent_id) }}
+            {% else %}
+            —
+            {% endif %}
+            · {{ msg.channel }}
+        </div>
+    </div>
+    {% endfor %}
+    {% else %}
+    <p class="text-gray-500 mb-0">No messages recorded for this run yet.</p>
+    {% endif %}
+
+    {% if run.logs %}
+    <h4 class="fw-bold text-dark fs-6 mb-4 mt-8">Run logs</h4>
+    <div class="table-responsive">
+        <table class="table align-middle table-row-dashed fs-7 gy-2 mb-0">
+            <thead>
+                <tr class="text-start text-gray-500 fw-bold text-uppercase">
+                    <th>Level</th>
+                    <th>Message</th>
+                    <th>Time</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in run.logs %}
+                <tr>
+                    <td><span class="badge badge-light">{{ log.level }}</span></td>
+                    <td class="text-gray-800">{{ log.message }}</td>
+                    <td class="text-gray-500">{{ log.created_at }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+</div>

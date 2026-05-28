@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Your Business</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <header class="hero">
+    <div class="hero-glow"></div>
+    <div class="hero-inner">
+      <div class="chip">Premium Dining Experience</div>
+      <h1 id="business-name">Your Business</h1>
+      <p id="tagline">Welcome — customize this site for your business.</p>
+      <nav>
+        <ul>
+          <li><a href="#highlights">Highlights</a></li>
+          <li><a href="#signature">Signature Picks</a></li>
+          <li><a href="#booking">Book a Table</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <section id="highlights" class="panel">
+      <div class="panel-head">
+        <h2>Why Guests Love Us</h2>
+        <p class="muted">A curated dining experience with flavor, warmth, and service.</p>
+      </div>
+      <ul id="highlights-list" class="feature-grid"></ul>
+    </section>
+
+    <section id="signature" class="panel">
+      <div class="panel-head">
+        <h2>Signature Picks</h2>
+        <p class="muted">Popular choices guests return for every week.</p>
+      </div>
+      <div class="menu-grid">
+        <article class="menu-card">
+          <h3>Chef's Wok Specials</h3>
+          <p>Seasonal ingredients, intense wok aroma, and balanced spice.</p>
+        </article>
+        <article class="menu-card">
+          <h3>Handmade Dumplings</h3>
+          <p>Freshly folded each day with house-made sauces.</p>
+        </article>
+        <article class="menu-card">
+          <h3>Tea Pairing Experience</h3>
+          <p>Thoughtful pairings to elevate each course beautifully.</p>
+        </article>
+      </div>
+    </section>
+
+    <section id="booking" class="panel panel-accent">
+      <div class="panel-head">
+        <h2>Reserve Your Table</h2>
+        <p class="muted">Instant confirmation for your preferred date and party size.</p>
+      </div>
+      <form id="booking-form">
+        <label>Name <input name="name" required /></label>
+        <label>Phone <input name="phone" required /></label>
+        <label>Date <input name="date" type="date" required /></label>
+        <label>Party size <input name="party_size" type="number" min="1" max="50" value="2" /></label>
+        <label>Notes <textarea name="notes" placeholder="Allergies, special occasion, seating preference"></textarea></label>
+        <button type="submit">Confirm Reservation</button>
+      </form>
+      <p id="booking-status" role="status"></p>
+    </section>
+  </main>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

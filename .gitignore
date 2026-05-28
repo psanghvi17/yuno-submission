@@ -1,0 +1,17 @@
+.env
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+dist/
+build/
+postgres_data/
+backend/data/generated_projects/
+backend/data/tool_outputs/
+theme-tree.txt
+ssh-keygen.pub
+ssh-keygen

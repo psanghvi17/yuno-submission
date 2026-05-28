@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}New Workflow | {{ app_name }}{% endblock %}
+{% block header_title %}New Workflow{% endblock %}
+{% block content %}
+<div class="toolbar py-5" id="kt_toolbar">
+    <div class="container-fluid d-flex flex-stack">
+        <div class="d-flex flex-column">
+            <h1 class="text-dark fw-bold fs-2 mb-1">New Workflow</h1>
+            <ul class="breadcrumb breadcrumb-separatorless fw-semibold fs-7 my-0">
+                <li class="breadcrumb-item text-muted"><a href="/workflows" class="text-muted text-hover-primary">Workflows</a></li>
+                <li class="breadcrumb-item"><span class="bullet bg-gray-400 w-5px h-2px"></span></li>
+                <li class="breadcrumb-item text-dark">New</li>
+            </ul>
+        </div>
+    </div>
+</div>
+<div class="post fs-6 d-flex flex-column-fluid">
+    <div class="container-xxl py-10">
+        <div class="card">
+            <div class="card-body">
+                <form method="post" action="/workflows" class="form">
+                    <div class="mb-6">
+                        <label class="form-label required">Name</label>
+                        <input type="text" name="name" class="form-control {% if errors.name %}is-invalid{% endif %}"
+                               value="{{ form.name }}" required />
+                        {% if errors.name %}<div class="invalid-feedback">{{ errors.name }}</div>{% endif %}
+                    </div>
+                    <div class="mb-8">
+                        <label class="form-label">Description</label>
+                        <textarea name="description" class="form-control" rows="4">{{ form.description }}</textarea>
+                        {% if errors.description %}<div class="text-danger fs-7 mt-1">{{ errors.description }}</div>{% endif %}
+                    </div>
+                    <p class="text-gray-600 fs-7 mb-8">A blank graph is created automatically. Use the visual builder in a later phase to add nodes.</p>
+                    <div class="d-flex gap-3">
+                        <button type="submit" class="btn btn-primary">Create Workflow</button>
+                        <a href="/workflows" class="btn btn-light">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

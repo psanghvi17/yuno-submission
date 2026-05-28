@@ -1,0 +1,182 @@
+{% extends "base.html" %}
+{% block title %}Dashboard | {{ app_name }}{% endblock %}
+{% block header_title %}Dashboard{% endblock %}
+{% block content %}
+<div class="toolbar py-5" id="kt_toolbar">
+    <div class="container-fluid d-flex flex-stack flex-wrap">
+        <div class="d-flex flex-column">
+            <h1 class="text-dark fw-bold fs-2 mb-1">Dashboard</h1>
+            <p class="text-gray-600 fs-7 mb-0">Signed in as {{ user.email }}</p>
+        </div>
+        <div class="d-flex flex-wrap gap-2">
+            <a href="/workflows/templates" class="btn btn-light-primary btn-sm">Templates</a>
+            <a href="/agents/new" class="btn btn-primary btn-sm">New agent</a>
+        </div>
+    </div>
+</div>
+<div class="post fs-6 d-flex flex-column-fluid">
+    <div class="container-xxl py-10">
+        <div class="row g-6 mb-6">
+            <div class="col-md-3">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <div class="text-gray-500 fs-7 fw-semibold">Agents</div>
+                        <div class="fs-2 fw-bold text-gray-800">{{ stats.agent_count }}</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <div class="text-gray-500 fs-7 fw-semibold">Workflows</div>
+                        <div class="fs-2 fw-bold text-gray-800">{{ stats.workflow_count }}</div>
+                        <div class="text-gray-500 fs-8">{{ stats.template_count }} templates</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <div class="text-gray-500 fs-7 fw-semibold">Active runs</div>
+                        <div class="fs-2 fw-bold text-primary">{{ stats.active_runs }}</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <div class="text-gray-500 fs-7 fw-semibold">Total run cost</div>
+                        <div class="fs-2 fw-bold text-gray-800">${{ stats.total_cost_usd }}</div>
+                        <div class="text-gray-500 fs-8">{{ stats.failed_runs }} failed</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-6">
+            <div class="col-lg-6">
+                <div class="card h-100">
+                    <div class="card-header border-0 pt-6 d-flex justify-content-between align-items-center">
+                        <h3 class="fw-bold text-dark mb-0">Active runs</h3>
+                        <a href="/runs" class="btn btn-sm btn-light">All runs</a>
+                    </div>
+                    <div class="card-body pt-0">
+                        {% if active_runs %}
+                        <div class="table-responsive">
+                            <table class="table align-middle table-row-dashed fs-7 gy-2">
+                                <thead>
+                                    <tr class="text-gray-500 fw-bold text-uppercase">
+                                        <th>Run</th>
+                                        <th>Workflow</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for run in active_runs %}
+                                    <tr>
+                                        <td><a href="/runs/{{ run.id }}" class="fw-bold text-hover-primary">#{{ run.id }}</a></td>
+                                        <td class="text-gray-700">{{ run.workflow_name }}</td>
+                                        <td><span class="badge badge-light-primary">{{ run.status }}</span></td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% else %}
+                        <p class="text-gray-500 mb-0">No active runs. <a href="/workflows">Run a workflow</a>.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="card h-100">
+                    <div class="card-header border-0 pt-6">
+                        <h3 class="fw-bold text-dark mb-0">Recent messages</h3>
+                    </div>
+                    <div class="card-body pt-0">
+                        {% if recent_messages %}
+                        {% for msg in recent_messages %}
+                        <div class="border border-gray-200 rounded p-3 mb-3">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span class="badge badge-light">{{ msg.role }}</span>
+                                <span class="text-gray-500 fs-8">{{ msg.channel }} · <a href="/runs/{{ msg.run_id }}">Run #{{ msg.run_id }}</a></span>
+                            </div>
+                            <p class="text-gray-800 mb-0 fs-7">{{ msg.content_preview }}</p>
+                        </div>
+                        {% endfor %}
+                        {% else %}
+                        <p class="text-gray-500 mb-0">No messages yet.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-6 mt-0">
+            <div class="col-lg-7">
+                <div class="card mt-6">
+                    <div class="card-header border-0 pt-6">
+                        <h3 class="fw-bold text-dark mb-0">Recent runs</h3>
+                    </div>
+                    <div class="card-body pt-0">
+                        <div class="table-responsive">
+                            <table class="table align-middle table-row-dashed fs-7 gy-2">
+                                <thead>
+                                    <tr class="text-gray-500 fw-bold text-uppercase">
+                                        <th>Run</th>
+                                        <th>Workflow</th>
+                                        <th>Triggered</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for run in recent_runs %}
+                                    <tr>
+                                        <td><a href="/runs/{{ run.id }}" class="fw-bold text-hover-primary">#{{ run.id }}</a></td>
+                                        <td>{{ run.workflow_name }}</td>
+                                        <td class="text-gray-600">{{ run.triggered_by }}</td>
+                                        <td>
+                                            {% if run.status == 'completed' %}
+                                            <span class="badge badge-light-success">{{ run.status }}</span>
+                                            {% elif run.status == 'failed' %}
+                                            <span class="badge badge-light-danger">{{ run.status }}</span>
+                                            {% elif run.status == 'running' %}
+                                            <span class="badge badge-light-primary">{{ run.status }}</span>
+                                            {% else %}
+                                            <span class="badge badge-light-warning">{{ run.status }}</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-5">
+                <div class="card mt-6">
+                    <div class="card-header border-0 pt-6">
+                        <h3 class="fw-bold text-dark mb-0">Failed runs</h3>
+                    </div>
+                    <div class="card-body pt-0">
+                        {% if failed_runs %}
+                        {% for run in failed_runs %}
+                        <div class="border border-danger border-dashed rounded p-4 mb-4">
+                            <div class="d-flex justify-content-between mb-2">
+                                <a href="/runs/{{ run.id }}" class="fw-bold text-hover-primary">Run #{{ run.id }}</a>
+                                <span class="text-gray-500 fs-8">{{ run.workflow_name }}</span>
+                            </div>
+                            <p class="text-danger fs-7 mb-0">{{ run.error or 'Unknown error' }}</p>
+                        </div>
+                        {% endfor %}
+                        {% else %}
+                        <p class="text-gray-500 mb-0">No failed runs.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,27 @@
+<div id="run-messages-panel"
+     {% if run.status in ('pending', 'running') %}data-run-poll{% endif %}>
+    <div class="card">
+        <div class="card-header border-0 pt-6">
+            <h3 class="fw-bold text-dark mb-0">Inter-agent messages</h3>
+        </div>
+        <div class="card-body pt-0">
+            {% if run.messages %}
+            {% for msg in run.messages %}
+            <div class="border border-gray-200 rounded p-4 mb-4">
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="badge badge-light-primary">{{ msg.role }}</span>
+                    <span class="text-gray-500 fs-8">{{ msg.created_at }}</span>
+                </div>
+                <p class="text-gray-800 mb-0">{{ msg.content }}</p>
+                <div class="text-gray-500 fs-8 mt-2">
+                    Agent {{ msg.from_agent_id or '—' }} → {{ msg.to_agent_id or '—' }}
+                    · {{ msg.channel }}
+                </div>
+            </div>
+            {% endfor %}
+            {% else %}
+            <p class="text-gray-500 mb-0">No messages yet.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>

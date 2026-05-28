@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% block title %}{{ page_title }} | {{ app_name }}{% endblock %}
+{% block header_title %}{{ page_title }}{% endblock %}
+{% block content %}
+<div class="toolbar py-5" id="kt_toolbar">
+    <div class="container-fluid d-flex flex-stack flex-wrap">
+        <div class="d-flex flex-column">
+            <h1 class="text-dark fw-bold fs-2 mb-1">{{ page_title }}</h1>
+            <ul class="breadcrumb breadcrumb-separatorless fw-semibold fs-7 my-0">
+                <li class="breadcrumb-item text-muted"><a href="/dashboard" class="text-muted text-hover-primary">Home</a></li>
+                <li class="breadcrumb-item"><span class="bullet bg-gray-400 w-5px h-2px"></span></li>
+                <li class="breadcrumb-item text-dark">{{ page_title }}</li>
+            </ul>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="/workflows/templates" class="btn btn-light-primary">Templates</a>
+            <a href="/workflows/new" class="btn btn-primary">New Workflow</a>
+        </div>
+    </div>
+</div>
+<div class="post fs-6 d-flex flex-column-fluid">
+    <div class="container-xxl py-10">
+        {% if flash == 'created' %}
+        <div class="alert alert-success mb-6">Workflow created successfully.</div>
+        {% elif flash == 'updated' %}
+        <div class="alert alert-success mb-6">Workflow updated successfully.</div>
+        {% elif flash == 'from_template' %}
+        <div class="alert alert-success mb-6">Workflow created from template.</div>
+        {% elif flash == 'deleted' %}
+        <div class="alert alert-success mb-6">Workflow deleted successfully.</div>
+        {% endif %}
+        <div class="card">
+            <div class="card-header border-0 pt-6">
+                <div class="card-title">
+                    <h3 class="fw-bold text-dark mb-0">Your workflows</h3>
+                </div>
+            </div>
+            <div class="card-body pt-0">
+                {% if workflows %}
+                <div class="table-responsive">
+                    <table class="table align-middle table-row-dashed fs-6 gy-5">
+                        <thead>
+                            <tr class="text-start text-gray-500 fw-bold fs-7 text-uppercase gs-0">
+                                <th>Name</th>
+                                <th>Description</th>
+                                <th>Nodes</th>
+                                <th>Version</th>
+                                <th class="text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for workflow in workflows %}
+                            <tr>
+                                <td>
+                                    <a href="/workflows/{{ workflow.id }}" class="text-gray-800 text-hover-primary fw-bold">{{ workflow.name }}</a>
+                                </td>
+                                <td class="text-gray-600">{{ workflow.description or '—' }}</td>
+                                <td><span class="badge badge-light">{{ (workflow.graph_json.nodes | default([])) | length }}</span></td>
+                                <td class="text-gray-600">v{{ workflow.version }}</td>
+                                <td class="text-end">
+                                    <div class="d-flex justify-content-end flex-shrink-0 gap-1">
+                                        <a href="/workflows/{{ workflow.id }}/edit"
+                                           class="btn btn-sm btn-icon btn-light btn-active-light-primary"
+                                           title="Open builder"
+                                           aria-label="Open builder">
+                                            <i class="ki-duotone ki-design fs-2">
+                                                <span class="path1"></span>
+                                                <span class="path2"></span>
+                                            </i>
+                                        </a>
+                                        <a href="/workflows/{{ workflow.id }}"
+                                           class="btn btn-sm btn-icon btn-light btn-active-light-primary"
+                                           title="View workflow"
+                                           aria-label="View workflow">
+                                            <i class="ki-duotone ki-eye fs-2">
+                                                <span class="path1"></span>
+                                                <span class="path2"></span>
+                                                <span class="path3"></span>
+                                            </i>
+                                        </a>
+                                        <form method="post" action="/workflows/{{ workflow.id }}/delete" class="d-inline"
+                                              onsubmit="return confirm('Delete workflow {{ workflow.name }}?');">
+                                            <button type="submit"
+                                                    class="btn btn-sm btn-icon btn-light btn-active-light-danger"
+                                                    title="Delete workflow"
+                                                    aria-label="Delete workflow">
+                                                <i class="ki-duotone ki-trash fs-2">
+                                                    <span class="path1"></span>
+                                                    <span class="path2"></span>
+                                                    <span class="path3"></span>
+                                                    <span class="path4"></span>
+                                                    <span class="path5"></span>
+                                                </i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% include "partials/pagination.html" %}
+                {% else %}
+                <div class="text-center py-15">
+                    <p class="text-gray-600 fs-6 mb-6">No workflows yet. Create a blank workflow or start from a template.</p>
+                    <a href="/workflows/new" class="btn btn-primary me-3">New Workflow</a>
+                    <a href="/workflows/templates" class="btn btn-light-primary">Browse Templates</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

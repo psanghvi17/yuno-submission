@@ -1,0 +1,65 @@
+#drawflow {
+    width: 100%;
+    height: calc(100vh - 220px);
+    min-height: 480px;
+    background: var(--bs-gray-100);
+    border: 1px dashed var(--bs-gray-300);
+    border-radius: 0.475rem;
+    position: relative;
+}
+
+.drawflow .drawflow-node {
+    background: #fff;
+    border: 1px solid var(--bs-gray-300);
+    border-radius: 0.475rem;
+    min-width: 180px;
+    box-shadow: 0 0 12px rgba(0, 0, 0, 0.06);
+    padding: 0;
+}
+
+.drawflow .drawflow-node.agent {
+    border-top: 3px solid var(--bs-primary);
+}
+
+.drawflow .drawflow-node.condition {
+    border-top: 3px solid var(--bs-warning);
+}
+
+.drawflow .drawflow-node.end {
+    border-top: 3px solid var(--bs-success);
+}
+
+.drawflow .drawflow-node.channel {
+    border-top: 3px solid var(--bs-info);
+}
+
+.wf-node-body {
+    padding: 10px 12px 8px;
+}
+
+.wf-node-title {
+    font-weight: 600;
+    font-size: 0.85rem;
+    margin-bottom: 8px;
+    color: var(--bs-gray-800);
+}
+
+.wf-node-body .form-label {
+    font-size: 0.7rem;
+    margin-bottom: 2px;
+    color: var(--bs-gray-600);
+}
+
+.wf-node-body .form-control,
+.wf-node-body .form-select {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+}
+
+.wf-palette .btn {
+    text-align: left;
+}
+
+#builder-status.alert {
+    margin-bottom: 0;
+}

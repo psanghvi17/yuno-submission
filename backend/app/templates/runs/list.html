@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+{% block title %}Runs | {{ app_name }}{% endblock %}
+{% block header_title %}Workflow runs{% endblock %}
+{% block content %}
+<div class="toolbar py-5" id="kt_toolbar">
+    <div class="container-fluid d-flex flex-stack flex-wrap">
+        <div class="d-flex flex-column">
+            <h1 class="text-dark fw-bold fs-2 mb-1">Run history</h1>
+            <ul class="breadcrumb breadcrumb-separatorless fw-semibold fs-7 my-0">
+                <li class="breadcrumb-item text-muted"><a href="/dashboard" class="text-muted text-hover-primary">Home</a></li>
+                <li class="breadcrumb-item"><span class="bullet bg-gray-400 w-5px h-2px"></span></li>
+                <li class="breadcrumb-item text-dark">Runs</li>
+            </ul>
+        </div>
+        <a href="/workflows" class="btn btn-primary">Run a workflow</a>
+    </div>
+</div>
+<div class="post fs-6 d-flex flex-column-fluid">
+    <div class="container-xxl py-10">
+        <div class="card">
+            <div class="card-body pt-0">
+                {% if rows %}
+                <div class="table-responsive">
+                    <table class="table align-middle table-row-dashed fs-6 gy-4">
+                        <thead>
+                            <tr class="text-start text-gray-500 fw-bold fs-7 text-uppercase">
+                                <th>Run</th>
+                                <th>Workflow</th>
+                                <th>Status</th>
+                                <th>Triggered by</th>
+                                <th>Started</th>
+                                <th>Error</th>
+                                <th class="text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in rows %}
+                            <tr>
+                                <td><a href="/runs/{{ row.run.id }}" class="fw-bold text-hover-primary">#{{ row.run.id }}</a></td>
+                                <td>{{ row.workflow_name }}</td>
+                                <td>
+                                    {% if row.run.status == 'completed' %}
+                                    <span class="badge badge-light-success">Completed</span>
+                                    {% elif row.run.status == 'failed' %}
+                                    <span class="badge badge-light-danger">Failed</span>
+                                    {% elif row.run.status == 'running' %}
+                                    <span class="badge badge-light-primary">Running</span>
+                                    {% elif row.run.status == 'pending' %}
+                                    <span class="badge badge-light-warning">Pending</span>
+                                    {% elif row.run.status == 'cancelled' %}
+                                    <span class="badge badge-light-dark">Stopped</span>
+                                    {% else %}
+                                    <span class="badge badge-light">{{ row.run.status }}</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-gray-600">{{ row.run.triggered_by }}</td>
+                                <td class="text-gray-500 fs-7">{{ row.run.started_at or '—' }}</td>
+                                <td class="text-danger fs-7">{{ row.run.error or '—' }}</td>
+                                <td class="text-end">
+                                    <div class="d-flex justify-content-end flex-shrink-0 gap-1">
+                                        <button type="button"
+                                                class="btn btn-sm btn-icon btn-light btn-active-light-primary"
+                                                title="View history"
+                                                aria-label="View history for run {{ row.run.id }}"
+                                                data-run-history
+                                                data-run-id="{{ row.run.id }}"
+                                                data-run-label="Run #{{ row.run.id }} · {{ row.workflow_name }}">
+                                            <i class="ki-duotone ki-message-text-2 fs-2">
+                                                <span class="path1"></span>
+                                                <span class="path2"></span>
+                                                <span class="path3"></span>
+                                            </i>
+                                        </button>
+                                        <a href="/runs/{{ row.run.id }}"
+                                           class="btn btn-sm btn-icon btn-light btn-active-light-primary"
+                                           title="Open run monitor"
+                                           aria-label="Open run monitor for run {{ row.run.id }}">
+                                            <i class="ki-duotone ki-eye fs-2">
+                                                <span class="path1"></span>
+                                                <span class="path2"></span>
+                                                <span class="path3"></span>
+                                            </i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% include "partials/pagination.html" %}
+                {% else %}
+                <p class="text-gray-500 py-10 mb-0">No runs yet. Start one from a workflow detail page.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="run-history-modal" tabindex="-1" aria-labelledby="run-history-modal-title" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="fw-bold text-dark mb-0" id="run-history-modal-title">Run history</h2>
+                <button type="button" class="btn btn-sm btn-icon btn-active-light-primary" data-bs-dismiss="modal" aria-label="Close">
+                    <i class="ki-duotone ki-cross fs-1">
+                        <span class="path1"></span>
+                        <span class="path2"></span>
+                    </i>
+                </button>
+            </div>
+            <div class="modal-body" id="run-history-modal-body">
+                <p class="text-gray-500 mb-0">Loading…</p>
+            </div>
+            <div class="modal-footer">
+                <a href="#" id="run-history-modal-link" class="btn btn-sm btn-light-primary">Open full run page</a>
+                <button type="button" class="btn btn-sm btn-light" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+(function () {
+    var modalEl = document.getElementById("run-history-modal");
+    var titleEl = document.getElementById("run-history-modal-title");
+    var bodyEl = document.getElementById("run-history-modal-body");
+    var linkEl = document.getElementById("run-history-modal-link");
+    if (!modalEl || !bodyEl) {
+        return;
+    }
+
+    var modal = window.bootstrap && bootstrap.Modal
+        ? bootstrap.Modal.getOrCreateInstance(modalEl)
+        : null;
+
+    document.querySelectorAll("[data-run-history]").forEach(function (btn) {
+        btn.addEventListener("click", async function () {
+            var runId = btn.getAttribute("data-run-id");
+            var label = btn.getAttribute("data-run-label") || ("Run #" + runId);
+            titleEl.textContent = label;
+            linkEl.href = "/runs/" + runId;
+            bodyEl.innerHTML = '<p class="text-gray-500 mb-0">Loading…</p>';
+            if (modal) {
+                modal.show();
+            } else {
+                modalEl.classList.add("show");
+                modalEl.style.display = "block";
+            }
+
+            try {
+                var response = await fetch("/runs/" + runId + "/fragment/history", {
+                    credentials: "same-origin",
+                });
+                if (response.status === 401) {
+                    window.location.href = "/auth/login";
+                    return;
+                }
+                if (!response.ok) {
+                    bodyEl.innerHTML = '<div class="alert alert-danger mb-0">Could not load run history.</div>';
+                    return;
+                }
+                bodyEl.innerHTML = await response.text();
+            } catch (err) {
+                bodyEl.innerHTML = '<div class="alert alert-danger mb-0">Could not load run history.</div>';
+            }
+        });
+    });
+})();
+</script>
+{% endblock %}

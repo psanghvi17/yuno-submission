@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{% block title %}Channels | {{ app_name }}{% endblock %}
+{% block header_title %}Channels{% endblock %}
+{% block content %}
+<div class="toolbar py-5" id="kt_toolbar">
+    <div class="container-fluid d-flex flex-stack flex-wrap">
+        <div class="d-flex flex-column">
+            <h1 class="text-dark fw-bold fs-2 mb-1">Telegram channels</h1>
+            <ul class="breadcrumb breadcrumb-separatorless fw-semibold fs-7 my-0">
+                <li class="breadcrumb-item text-muted"><a href="/dashboard" class="text-muted text-hover-primary">Home</a></li>
+                <li class="breadcrumb-item"><span class="bullet bg-gray-400 w-5px h-2px"></span></li>
+                <li class="breadcrumb-item text-dark">Channels</li>
+            </ul>
+        </div>
+        <a href="/channels/new" class="btn btn-primary">Link agent</a>
+    </div>
+</div>
+<div class="post fs-6 d-flex flex-column-fluid">
+    <div class="container-xxl py-10">
+        {% if flash == 'linked' %}
+        <div class="alert alert-success mb-6">Agent linked to Telegram chat. Send a message to your bot to start chatting.</div>
+        {% elif flash == 'deleted' %}
+        <div class="alert alert-success mb-6">Channel link removed.</div>
+        {% elif flash == 'not_found' %}
+        <div class="alert alert-warning mb-6">Channel link not found.</div>
+        {% endif %}
+        <div class="card mb-6">
+            <div class="card-body">
+                <h4 class="fw-bold text-dark mb-3">Setup</h4>
+                <ol class="text-gray-700 mb-0 ps-5">
+                    <li>Set <code>TELEGRAM_BOT_TOKEN</code> in <code>.env</code> at the repository root (from @BotFather).</li>
+                    <li>Link an agent to your Telegram <strong>chat ID</strong> below (message @userinfobot or inspect bot updates).</li>
+                    <li>
+                        Local dev: set <code>TELEGRAM_USE_POLLING=true</code> (no ngrok), or point webhook to
+                        <code>{{ request.url.scheme }}://{{ request.headers.get('host') }}/webhooks/telegram</code>
+                        with optional <code>TELEGRAM_WEBHOOK_SECRET</code>.
+                    </li>
+                    <li>
+                        <strong>5-agent pipeline:</strong> message your bot <code>/launch</code> (optional custom brief after the command).
+                        Final copy is sent back on Telegram when the run completes. Use <code>/help</code> for commands.
+                    </li>
+                    <li>
+                        <strong>Persistence:</strong> links are stored in PostgreSQL. With Docker Compose, data lives in the
+                        <code>postgres_data</code> volume (host <code>postgres:5432</code> inside containers).
+                        Avoid <code>docker compose down -v</code> unless you intend to wipe the DB.
+                        If links vanish, you may be on a different <code>DATABASE_URL</code> than when you linked.
+                    </li>
+                </ol>
+                <div class="mt-4">
+                    <span class="badge badge-light-secondary">Database: {{ database_label }}</span>
+                    {% if telegram_configured %}
+                    <span class="badge badge-light-success">Bot token configured</span>
+                    {% else %}
+                    <span class="badge badge-light-warning">Bot token missing</span>
+                    {% endif %}
+                    {% if telegram_polling %}
+                    <span class="badge badge-light-primary ms-2">Polling enabled</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-header border-0 pt-6">
+                <h3 class="fw-bold text-dark mb-0">Linked agents</h3>
+            </div>
+            <div class="card-body pt-0">
+                {% if links %}
+                <div class="table-responsive">
+                    <table class="table align-middle table-row-dashed fs-6 gy-5">
+                        <thead>
+                            <tr class="text-start text-gray-500 fw-bold fs-7 text-uppercase">
+                                <th>Agent</th>
+                                <th>Channel</th>
+                                <th>Chat ID</th>
+                                <th>Conversation run</th>
+                                <th>Status</th>
+                                <th class="text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for link in links %}
+                            <tr>
+                                <td class="fw-bold text-gray-800">{{ link.agent_name or link.agent_id }}</td>
+                                <td><span class="badge badge-light-info">{{ link.channel_type }}</span></td>
+                                <td class="text-gray-600"><code>{{ link.chat_id }}</code></td>
+                                <td>
+                                    {% if link.conversation_run_id %}
+                                    <a href="/runs/{{ link.conversation_run_id }}" class="text-hover-primary">Run #{{ link.conversation_run_id }}</a>
+                                    {% else %}
+                                    <span class="text-gray-500">—</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if link.is_active %}
+                                    <span class="badge badge-light-success">Active</span>
+                                    {% else %}
+                                    <span class="badge badge-light">Inactive</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-end">
+                                    <form method="post" action="/channels/{{ link.id }}/delete" class="d-inline"
+                                          onsubmit="return confirm('Remove this channel link?');">
+                                        <button type="submit" class="btn btn-sm btn-light-danger">Remove</button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% include "partials/pagination.html" %}
+                {% else %}
+                <p class="text-gray-500 mb-0">No channel links yet. Link an agent to start Telegram conversations.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

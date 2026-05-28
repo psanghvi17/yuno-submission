@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+{% block title %}{% if is_edit %}Edit{% else %}New{% endif %} Agent | {{ app_name }}{% endblock %}
+{% block header_title %}{% if is_edit %}Edit Agent{% else %}New Agent{% endif %}{% endblock %}
+{% block content %}
+<div class="toolbar py-5" id="kt_toolbar">
+    <div class="container-fluid d-flex flex-stack flex-wrap">
+        <div class="d-flex flex-column">
+            <h1 class="text-dark fw-bold fs-2 mb-1">{% if is_edit %}{{ agent.name }}{% else %}New Agent{% endif %}</h1>
+            <ul class="breadcrumb breadcrumb-separatorless fw-semibold fs-7 my-0">
+                <li class="breadcrumb-item text-muted"><a href="/agents" class="text-muted text-hover-primary">Agents</a></li>
+                <li class="breadcrumb-item"><span class="bullet bg-gray-400 w-5px h-2px"></span></li>
+                <li class="breadcrumb-item text-dark">{% if is_edit %}Edit{% else %}Create{% endif %}</li>
+            </ul>
+        </div>
+        <a href="/agents" class="btn btn-light-primary">Back to list</a>
+    </div>
+</div>
+<div class="post fs-6 d-flex flex-column-fluid">
+    <div class="container-xxl py-10">
+        <div class="card">
+            <div class="card-body p-10">
+                {% if flash == 'created' %}
+                <div class="alert alert-success mb-8">Agent created successfully.</div>
+                {% elif flash == 'updated' %}
+                <div class="alert alert-success mb-8">Agent updated successfully.</div>
+                {% endif %}
+                {% if errors %}
+                <div class="alert alert-danger mb-8">
+                    <ul class="mb-0 ps-5">
+                        {% for field, message in errors.items() %}
+                        <li><strong>{{ field }}</strong>: {{ message }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+
+                <form method="post" action="{% if is_edit %}/agents/{{ agent.id }}{% else %}/agents{% endif %}">
+                    <div class="row mb-8">
+                        <div class="col-lg-6 fv-row">
+                            <label class="required form-label fw-bold text-dark">Name</label>
+                            <input type="text" name="name" class="form-control form-control-lg form-control-solid"
+                                   value="{{ form.name }}" required maxlength="255" />
+                        </div>
+                        <div class="col-lg-6 fv-row">
+                            <label class="form-label fw-bold text-dark">Role</label>
+                            <input type="text" name="role" class="form-control form-control-lg form-control-solid"
+                                   value="{{ form.role }}" maxlength="255" placeholder="e.g. Gather information" />
+                        </div>
+                    </div>
+
+                    <div class="mb-8">
+                        <label class="form-label fw-bold text-dark">System prompt</label>
+                        <textarea name="system_prompt" class="form-control form-control-solid" rows="5"
+                                  placeholder="Instructions for this agent">{{ form.system_prompt }}</textarea>
+                    </div>
+
+                    <div class="row mb-8">
+                        <div class="col-lg-6 fv-row">
+                            <label class="required form-label fw-bold text-dark">Model</label>
+                            <input type="text" name="model" class="form-control form-control-lg form-control-solid"
+                                   value="{{ form.model }}" required maxlength="128" />
+                        </div>
+                        <div class="col-lg-6 fv-row d-flex align-items-end">
+                            <div class="form-check form-switch form-check-custom form-check-solid">
+                                <input class="form-check-input" type="checkbox" name="is_active" value="true"
+                                       id="is_active" {% if form.is_active %}checked{% endif %} />
+                                <label class="form-check-label fw-semibold text-gray-700" for="is_active">Active</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-8">
+                        <label class="form-label fw-bold text-dark">Tools</label>
+                        <textarea name="tools_raw" class="form-control form-control-solid" rows="3"
+                                  placeholder="One tool per line, e.g. web_search">{{ form.tools_raw }}</textarea>
+                        <div class="form-text">
+                            Available tools (one per line above):
+                            {% for name in registered_tool_names() %}
+                            <code class="text-gray-700">{{ name }}</code>{% if not loop.last %}, {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="separator my-10"></div>
+                    <h3 class="fw-bold text-dark mb-6">Agent configuration</h3>
+
+                    <div class="mb-8">
+                        <h5 class="text-gray-800 fw-semibold mb-4">Memory</h5>
+                        <div class="mb-4">
+                            <label class="form-label">Context to retain</label>
+                            <textarea name="memory_context" class="form-control form-control-solid" rows="2"
+                                      placeholder="Facts or preferences the agent should remember">{{ form.memory_context }}</textarea>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <label class="form-label">Max conversation turns</label>
+                                <input type="number" name="memory_max_turns" min="1" max="100"
+                                       class="form-control form-control-solid" value="{{ form.memory_max_turns }}" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-8">
+                        <h5 class="text-gray-800 fw-semibold mb-4">Schedule</h5>
+                        <div class="form-check form-switch mb-4">
+                            <input class="form-check-input" type="checkbox" name="schedule_enabled" value="true"
+                                   id="schedule_enabled" {% if form.schedule_enabled %}checked{% endif %} />
+                            <label class="form-check-label" for="schedule_enabled">Enable scheduled runs</label>
+                        </div>
+                        <div class="row g-4">
+                            <div class="col-md-6">
+                                <label class="form-label">Cron expression</label>
+                                <input type="text" name="schedule_cron" class="form-control form-control-solid"
+                                       value="{{ form.schedule_cron }}" placeholder="0 9 * * 1-5" />
+                                <div class="form-text">Standard cron syntax (UI scheduler can be added later).</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Notes</label>
+                                <input type="text" name="schedule_notes" class="form-control form-control-solid"
+                                       value="{{ form.schedule_notes }}" placeholder="e.g. Weekday mornings" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-8">
+                        <h5 class="text-gray-800 fw-semibold mb-4">Guardrails</h5>
+                        <div class="row g-4">
+                            <div class="col-md-4">
+                                <label class="form-label">Max output tokens</label>
+                                <input type="number" name="guardrails_max_tokens" min="1"
+                                       class="form-control form-control-solid" value="{{ form.guardrails_max_tokens }}" />
+                            </div>
+                            <div class="col-md-8">
+                                <label class="form-label">Blocked topics (one per line)</label>
+                                <textarea name="guardrails_topics" class="form-control form-control-solid" rows="3"
+                                          placeholder="medical diagnosis">{{ form.guardrails_topics }}</textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-10">
+                        <a class="text-primary fw-semibold" data-bs-toggle="collapse" href="#advanced_config">
+                            Advanced: raw JSON config
+                        </a>
+                        <div class="collapse mt-4" id="advanced_config">
+                            <textarea name="config_raw" class="form-control form-control-solid font-monospace" rows="6">{{ form.config_raw }}</textarea>
+                            <div class="form-text">If set, overrides the structured fields above.</div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-3">
+                        <a href="/agents" class="btn btn-light">Cancel</a>
+                        <button type="submit" class="btn btn-primary">
+                            {% if is_edit %}Save changes{% else %}Create agent{% endif %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

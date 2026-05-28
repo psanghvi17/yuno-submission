@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Sign In | {{ app_name }}</title>
+    <link rel="shortcut icon" href="/static/media/logos/favicon.ico" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,400,500,600,700" />
+    <link href="/static/plugins/global/plugins.bundle.css" rel="stylesheet" type="text/css" />
+    <link href="/static/css/style.bundle.css" rel="stylesheet" type="text/css" />
+</head>
+<body id="kt_body" class="auth-bg">
+{% from "partials/password_toggle.html" import password_field, password_toggle_scripts %}
+<script>
+var defaultThemeMode = "light";
+var themeMode;
+if (document.documentElement) {
+    if (document.documentElement.hasAttribute("data-bs-theme-mode")) {
+        themeMode = document.documentElement.getAttribute("data-bs-theme-mode");
+    } else if (localStorage.getItem("data-bs-theme") !== null) {
+        themeMode = localStorage.getItem("data-bs-theme");
+    } else {
+        themeMode = defaultThemeMode;
+    }
+    if (themeMode === "system") {
+        themeMode = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    }
+    document.documentElement.setAttribute("data-bs-theme", themeMode);
+}
+</script>
+<div class="d-flex flex-column flex-root">
+    <div class="d-flex flex-column flex-lg-row flex-column-fluid">
+        <div class="d-flex flex-column flex-lg-row-auto bg-primary w-xl-600px positon-xl-relative">
+            <div class="d-flex flex-column position-xl-fixed top-0 bottom-0 w-xl-600px scroll-y">
+                <div class="d-flex flex-row-fluid flex-column text-center p-5 p-lg-10 pt-lg-20">
+                    <a href="/" class="py-2 py-lg-20 d-inline-block">
+                        <img alt="{{ app_name }}" src="/static/media/logos/logo-orqestra-mark.svg" class="h-60px h-lg-70px" />
+                    </a>
+                    <h1 class="d-none d-lg-block fw-bold text-white fs-2qx pb-5 pb-md-10">Welcome to {{ app_name }}</h1>
+                    <p class="d-none d-lg-block fw-semibold fs-2 text-white">
+                        {{ app_tagline }}
+                    </p>
+                </div>
+                <div class="d-none d-lg-block d-flex flex-row-auto bgi-no-repeat bgi-position-x-center bgi-size-contain bgi-position-y-bottom min-h-100px min-h-lg-350px"
+                     style="background-image: url(/static/media/illustrations/sigma-1/17.png)"></div>
+            </div>
+        </div>
+        <div class="d-flex flex-column flex-lg-row-fluid py-10">
+            <div class="d-flex flex-center flex-column flex-column-fluid">
+                <div class="w-lg-500px p-10 p-lg-15 mx-auto">
+                    <form class="form w-100" method="post" action="/auth/login">
+                        <div class="text-center mb-10">
+                            <h1 class="text-dark mb-3">Sign in to {{ app_name }}</h1>
+                            <div class="text-gray-400 fw-semibold fs-6">Use your platform credentials</div>
+                        </div>
+
+                        {% if error == 'invalid_credentials' %}
+                        <div class="alert alert-danger d-flex align-items-center p-5 mb-10">
+                            <span class="fw-semibold">Invalid email or password. Please try again.</span>
+                        </div>
+                        {% elif error == 'invalid_email' %}
+                        <div class="alert alert-danger d-flex align-items-center p-5 mb-10">
+                            <span class="fw-semibold">Please enter a valid email address.</span>
+                        </div>
+                        {% endif %}
+
+                        {% if flash == 'password_reset' %}
+                        <div class="alert alert-success d-flex align-items-center p-5 mb-10">
+                            <span class="fw-semibold">Your password was reset. You can sign in now.</span>
+                        </div>
+                        {% endif %}
+
+                        <div class="fv-row mb-10">
+                            <label class="form-label fs-6 fw-bold text-dark">Email</label>
+                            <input class="form-control form-control-lg form-control-solid"
+                                   type="email" name="email" autocomplete="username" required />
+                        </div>
+                        <div class="fv-row mb-3">
+                            <div class="d-flex justify-content-between align-items-center mb-0">
+                                <label class="form-label fw-bold text-dark fs-6 mb-0">Password</label>
+                                <a href="/auth/forgot-password" class="link-primary fs-7 fw-semibold">Forgot password?</a>
+                            </div>
+                            {{ password_field("password", autocomplete="current-password", required=true) }}
+                        </div>
+                        <div class="text-center">
+                            <button type="submit" class="btn btn-lg btn-primary w-100 mb-5">
+                                <span class="indicator-label">Sign In</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="/static/plugins/global/plugins.bundle.js"></script>
+<script src="/static/js/scripts.bundle.js"></script>
+{{ password_toggle_scripts() }}
+</body>
+</html>

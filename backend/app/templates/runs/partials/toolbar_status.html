@@ -1,0 +1,27 @@
+<div id="run-toolbar-status"
+     {% if run.status in ('pending', 'running') %}data-run-poll{% endif %}
+     class="d-flex gap-2 align-items-center flex-wrap justify-content-end">
+    {% if run.status == 'pending' %}
+    <span class="badge badge-light-warning fs-7">Pending</span>
+    {% elif run.status == 'running' %}
+    <span class="badge badge-light-primary fs-7">Running</span>
+    {% elif run.status == 'completed' %}
+    <span class="badge badge-light-success fs-7">Completed</span>
+    {% elif run.status == 'failed' %}
+    <span class="badge badge-light-danger fs-7">Failed</span>
+    {% elif run.status == 'cancelled' %}
+    <span class="badge badge-light-dark fs-7">Stopped</span>
+    {% else %}
+    <span class="badge badge-light fs-7">{{ run.status }}</span>
+    {% endif %}
+    {% if run.status in ('pending', 'running') %}
+    <form method="post" action="/runs/{{ run.id }}/stop"
+          onsubmit="return confirm('Stop this workflow run?');">
+        <button type="submit" class="btn btn-sm btn-danger">
+            {% if run.cancel_requested %}Stopping…{% else %}Stop run{% endif %}
+        </button>
+    </form>
+    {% endif %}
+    <a href="/runs/{{ run.id }}/download-logs" class="btn btn-sm btn-light" download>Download logs</a>
+    <a href="/workflows/{{ run.workflow_id }}" class="btn btn-sm btn-light-primary">Back to workflow</a>
+</div>

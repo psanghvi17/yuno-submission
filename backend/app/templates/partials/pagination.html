@@ -1,0 +1,47 @@
+{% if pagination and pagination.total > 0 %}
+<div class="d-flex flex-stack flex-wrap pt-10">
+    <div class="fs-6 fw-semibold text-gray-700">
+        Showing {{ pagination.start_index }} to {{ pagination.end_index }} of {{ pagination.total }} entries
+    </div>
+    {% if pagination.show_controls %}
+    <ul class="pagination">
+        <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
+            {% if pagination.has_prev %}
+            <a href="?{% if query_extra %}{{ query_extra }}&{% endif %}{{ page_param | default('page') }}={{ pagination.page - 1 }}"
+               class="page-link">
+                <i class="previous"></i>
+            </a>
+            {% else %}
+            <span class="page-link"><i class="previous"></i></span>
+            {% endif %}
+        </li>
+        {% for page_num in pagination.page_numbers %}
+            {% if page_num is none %}
+            <li class="page-item disabled">
+                <span class="page-link">…</span>
+            </li>
+            {% elif page_num == pagination.page %}
+            <li class="page-item active">
+                <span class="page-link">{{ page_num }}</span>
+            </li>
+            {% else %}
+            <li class="page-item">
+                <a href="?{% if query_extra %}{{ query_extra }}&{% endif %}{{ page_param | default('page') }}={{ page_num }}"
+                   class="page-link">{{ page_num }}</a>
+            </li>
+            {% endif %}
+        {% endfor %}
+        <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
+            {% if pagination.has_next %}
+            <a href="?{% if query_extra %}{{ query_extra }}&{% endif %}{{ page_param | default('page') }}={{ pagination.page + 1 }}"
+               class="page-link">
+                <i class="next"></i>
+            </a>
+            {% else %}
+            <span class="page-link"><i class="next"></i></span>
+            {% endif %}
+        </li>
+    </ul>
+    {% endif %}
+</div>
+{% endif %}

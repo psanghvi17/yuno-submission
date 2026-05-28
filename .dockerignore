@@ -1,0 +1,15 @@
+.git
+.env
+.env.*
+!.env.example
+**/__pycache__
+**/*.pyc
+**/.pytest_cache
+**/.venv
+backend/.venv
+ui/references
+docs
+*.md
+!README.md
+docker-compose.yml
+.agent-transcripts

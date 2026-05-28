@@ -1,0 +1,78 @@
+# Full local stack: Postgres + Redis + API + Celery worker.
+# Compose overrides DATABASE_URL + REDIS_URL so api/worker use bundled services (data in postgres_data volume).
+# Your .env may point at a remote DB for non-Docker runs; Docker always uses postgres:5432 below.
+services:
+  postgres:
+    image: postgres:16-alpine
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_USER: yuno
+      POSTGRES_PASSWORD: yuno
+      POSTGRES_DB: yuno
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U yuno -d yuno"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "127.0.0.1:3000:8000"
+    env_file:
+      - .env
+    environment:
+      UI_ASSETS_DIR: /ui-assets
+      UI_JS_DIR: /ui-js
+      DATABASE_URL: postgresql+psycopg2://yuno:yuno@postgres:5432/yuno
+      REDIS_URL: redis://redis:6379/0
+    volumes:
+      - ./backend:/app
+      - ./ui/assets:/ui-assets:ro
+      - ./ui/js:/ui-js:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    # No --reload: on WSL/Windows volume mounts, WatchFiles retriggers constantly and
+    # can spawn overlapping uvicorn workers — each starts Telegram long-polling → 409.
+    command: >
+      sh -c "alembic upgrade head &&
+             uvicorn app.main:app --host 0.0.0.0 --port 8000"
+
+  worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgresql+psycopg2://yuno:yuno@postgres:5432/yuno
+      REDIS_URL: redis://redis:6379/0
+    volumes:
+      - ./backend:/app
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: celery -A app.workers.celery_app worker --loglevel=info
+
+volumes:
+  postgres_data:

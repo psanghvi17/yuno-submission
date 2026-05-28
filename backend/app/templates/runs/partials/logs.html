@@ -1,0 +1,34 @@
+<div id="run-logs-panel"
+     {% if run.status in ('pending', 'running') %}data-run-poll{% endif %}>
+    <div class="card">
+        <div class="card-header border-0 pt-6">
+            <h3 class="fw-bold text-dark mb-0">Logs</h3>
+        </div>
+        <div class="card-body pt-0">
+            {% if run.logs %}
+            <div class="table-responsive">
+                <table class="table align-middle table-row-dashed fs-7 gy-2">
+                    <thead>
+                        <tr class="text-start text-gray-500 fw-bold text-uppercase">
+                            <th>Level</th>
+                            <th>Message</th>
+                            <th>Time</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for log in run.logs %}
+                        <tr>
+                            <td><span class="badge badge-light">{{ log.level }}</span></td>
+                            <td class="text-gray-800">{{ log.message }}</td>
+                            <td class="text-gray-500">{{ log.created_at }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-gray-500 mb-0">No logs yet.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>

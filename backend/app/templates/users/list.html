@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% block title %}Users | {{ app_name }}{% endblock %}
+{% block header_title %}Users{% endblock %}
+{% block content %}
+<div class="toolbar py-5" id="kt_toolbar">
+    <div class="container-fluid d-flex flex-stack flex-wrap">
+        <div class="d-flex flex-column">
+            <h1 class="text-dark fw-bold fs-2 mb-1">Users</h1>
+            <ul class="breadcrumb breadcrumb-separatorless fw-semibold fs-7 my-0">
+                <li class="breadcrumb-item text-muted"><a href="/dashboard" class="text-muted text-hover-primary">Home</a></li>
+                <li class="breadcrumb-item"><span class="bullet bg-gray-400 w-5px h-2px"></span></li>
+                <li class="breadcrumb-item text-dark">Users</li>
+            </ul>
+        </div>
+        <a href="/users/new" class="btn btn-primary">New User</a>
+    </div>
+</div>
+<div class="post fs-6 d-flex flex-column-fluid">
+    <div class="container-xxl py-10">
+        {% if flash == 'created' %}
+        <div class="alert alert-success mb-6">User created successfully.</div>
+        {% elif flash == 'updated' %}
+        <div class="alert alert-success mb-6">User updated successfully.</div>
+        {% elif flash == 'deleted' %}
+        <div class="alert alert-success mb-6">User deleted successfully.</div>
+        {% endif %}
+        <div class="card">
+            <div class="card-header border-0 pt-6">
+                <div class="card-title">
+                    <h3 class="fw-bold text-dark mb-0">Platform users</h3>
+                </div>
+            </div>
+            <div class="card-body pt-0">
+                {% if users %}
+                <div class="table-responsive">
+                    <table class="table align-middle table-row-dashed fs-6 gy-5">
+                        <thead>
+                            <tr class="text-start text-gray-500 fw-bold fs-7 text-uppercase gs-0">
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Status</th>
+                                <th class="text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for u in users %}
+                            <tr>
+                                <td>
+                                    <a href="/users/{{ u.id }}" class="text-gray-800 text-hover-primary fw-bold">
+                                        {{ u.full_name or '—' }}
+                                    </a>
+                                    {% if u.id == user.id %}
+                                    <span class="badge badge-light-info ms-2">You</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-gray-600">{{ u.email }}</td>
+                                <td>
+                                    {% if u.is_active %}
+                                    <span class="badge badge-light-success">Active</span>
+                                    {% else %}
+                                    <span class="badge badge-light-danger">Inactive</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-end">
+                                    <a href="/users/{{ u.id }}" class="btn btn-sm btn-light-primary me-2">Edit</a>
+                                    {% if u.id != user.id %}
+                                    <form method="post" action="/users/{{ u.id }}/delete" class="d-inline"
+                                          onsubmit="return confirm('Delete user {{ u.email }}?');">
+                                        <button type="submit" class="btn btn-sm btn-light-danger">Delete</button>
+                                    </form>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% include "partials/pagination.html" %}
+                {% else %}
+                <div class="text-center py-15">
+                    <p class="text-gray-600 fs-6 mb-6">No users yet.</p>
+                    <a href="/users/new" class="btn btn-primary">Create user</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

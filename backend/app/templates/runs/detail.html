@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+{% block title %}Run #{{ run.id }} | {{ app_name }}{% endblock %}
+{% block header_title %}Run #{{ run.id }}{% endblock %}
+{% block content %}
+<div class="toolbar py-5" id="kt_toolbar">
+    <div class="container-fluid d-flex flex-stack flex-wrap">
+        <div class="d-flex flex-column">
+            <h1 class="text-dark fw-bold fs-2 mb-1">Workflow run</h1>
+            <ul class="breadcrumb breadcrumb-separatorless fw-semibold fs-7 my-0">
+                <li class="breadcrumb-item text-muted"><a href="/workflows" class="text-muted text-hover-primary">Workflows</a></li>
+                <li class="breadcrumb-item"><span class="bullet bg-gray-400 w-5px h-2px"></span></li>
+                <li class="breadcrumb-item text-dark">{{ workflow_name }}</li>
+                <li class="breadcrumb-item"><span class="bullet bg-gray-400 w-5px h-2px"></span></li>
+                <li class="breadcrumb-item text-dark">Run #{{ run.id }}</li>
+            </ul>
+        </div>
+        {% include "runs/partials/toolbar_status.html" %}
+    </div>
+</div>
+<div class="post fs-6 d-flex flex-column-fluid" id="run-monitor-root" data-run-id="{{ run.id }}">
+    <div class="container-xxl py-10">
+        {% if flash == 'queued' %}
+        <div class="alert alert-info mb-6" id="run-queued-banner">
+            Run queued. Logs and messages update automatically every 2 seconds.
+        </div>
+        {% elif flash == 'stop_requested' %}
+        <div class="alert alert-warning mb-6" id="run-stop-banner">
+            Stop requested. The run will finish after the current step completes.
+        </div>
+        {% elif flash == 'stop_error' %}
+        <div class="alert alert-danger mb-6">This run is no longer active and cannot be stopped.</div>
+        {% endif %}
+        {% include "runs/partials/status.html" %}
+        <div class="row g-6">
+            <div class="col-lg-6">
+                {% include "runs/partials/logs.html" %}
+            </div>
+            <div class="col-lg-6">
+                {% include "runs/partials/messages.html" %}
+            </div>
+        </div>
+        {% include "runs/partials/usage.html" %}
+    </div>
+</div>
+{% endblock %}
+{% block extra_scripts %}
+<script id="run-monitor-script">
+(function () {
+    var root = document.getElementById("run-monitor-root");
+    if (!root) {
+        return;
+    }
+
+    var runId = root.getAttribute("data-run-id");
+    var fragments = [
+        { panelId: "run-status-panel", url: "/runs/" + runId + "/fragment/status" },
+        { panelId: "run-toolbar-status", url: "/runs/" + runId + "/fragment/toolbar-status" },
+        { panelId: "run-logs-panel", url: "/runs/" + runId + "/fragment/logs" },
+        { panelId: "run-messages-panel", url: "/runs/" + runId + "/fragment/messages" },
+        { panelId: "run-usage-panel", url: "/runs/" + runId + "/fragment/usage" },
+    ];
+
+    function runStatus() {
+        var badge = document.getElementById("run-status-badge");
+        return badge ? badge.getAttribute("data-status") : null;
+    }
+
+    function isActive() {
+        var status = runStatus();
+        return status === "pending" || status === "running";
+    }
+
+    function onRunFinished() {
+        var banner = document.getElementById("run-queued-banner");
+        if (banner) {
+            banner.remove();
+        }
+        var stopBanner = document.getElementById("run-stop-banner");
+        if (stopBanner) {
+            stopBanner.remove();
+        }
+    }
+
+    async function refreshPanel(spec) {
+        var el = document.getElementById(spec.panelId);
+        if (!el) {
+            return;
+        }
+        var response = await fetch(spec.url, {
+            credentials: "same-origin",
+            headers: { Accept: "text/html" },
+        });
+        if (response.status === 401) {
+            window.location.href = "/auth/login";
+            return;
+        }
+        if (!response.ok) {
+            return;
+        }
+        var html = await response.text();
+        if (!html || html.charAt(0) !== "<") {
+            return;
+        }
+        el.outerHTML = html;
+    }
+
+    var polling = false;
+
+    async function pollRunMonitor() {
+        if (polling || !isActive()) {
+            return;
+        }
+        polling = true;
+        try {
+            await Promise.all(fragments.map(refreshPanel));
+            if (!isActive()) {
+                onRunFinished();
+            }
+        } catch (err) {
+            console.warn("Run monitor poll failed", err);
+        } finally {
+            polling = false;
+        }
+    }
+
+    pollRunMonitor();
+    window.setInterval(pollRunMonitor, 2000);
+})();
+</script>
+{% endblock %}

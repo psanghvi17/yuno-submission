@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+{% block title %}Agents | {{ app_name }}{% endblock %}
+{% block header_title %}Agents{% endblock %}
+{% block content %}
+<div class="toolbar py-5" id="kt_toolbar">
+    <div class="container-fluid d-flex flex-stack flex-wrap">
+        <div class="d-flex flex-column">
+            <h1 class="text-dark fw-bold fs-2 mb-1">Agents</h1>
+            <ul class="breadcrumb breadcrumb-separatorless fw-semibold fs-7 my-0">
+                <li class="breadcrumb-item text-muted"><a href="/dashboard" class="text-muted text-hover-primary">Home</a></li>
+                <li class="breadcrumb-item"><span class="bullet bg-gray-400 w-5px h-2px"></span></li>
+                <li class="breadcrumb-item text-dark">Agents</li>
+            </ul>
+        </div>
+        <a href="/agents/new" class="btn btn-primary">New Agent</a>
+    </div>
+</div>
+<div class="post fs-6 d-flex flex-column-fluid">
+    <div class="container-xxl py-10">
+        {% if flash == 'created' %}
+        <div class="alert alert-success mb-6">Agent created successfully.</div>
+        {% elif flash == 'updated' %}
+        <div class="alert alert-success mb-6">Agent updated successfully.</div>
+        {% elif flash == 'deleted' %}
+        <div class="alert alert-success mb-6">Agent deleted successfully.</div>
+        {% endif %}
+        <div class="card">
+            <div class="card-header border-0 pt-6">
+                <div class="card-title">
+                    <h3 class="fw-bold text-dark mb-0">All agents</h3>
+                </div>
+            </div>
+            <div class="card-body pt-0">
+                {% if agents %}
+                <div class="table-responsive">
+                    <table class="table align-middle table-row-dashed fs-6 gy-5">
+                        <thead>
+                            <tr class="text-start text-gray-500 fw-bold fs-7 text-uppercase gs-0">
+                                <th>Name</th>
+                                <th>Role</th>
+                                <th>Model</th>
+                                <th>Tools</th>
+                                <th>Status</th>
+                                <th class="text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for agent in agents %}
+                            <tr>
+                                <td>
+                                    <a href="/agents/{{ agent.id }}" class="text-gray-800 text-hover-primary fw-bold">{{ agent.name }}</a>
+                                </td>
+                                <td class="text-gray-600">{{ agent.role or '—' }}</td>
+                                <td><span class="badge badge-light-primary">{{ agent.model }}</span></td>
+                                <td class="text-gray-600">
+                                    {% if agent.tools %}
+                                        {{ agent.tools | join(', ') }}
+                                    {% else %}
+                                        —
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if agent.is_active %}
+                                    <span class="badge badge-light-success">Active</span>
+                                    {% else %}
+                                    <span class="badge badge-light-danger">Inactive</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-end">
+                                    <div class="d-flex justify-content-end flex-shrink-0 gap-1">
+                                        <a href="/agents/{{ agent.id }}"
+                                           class="btn btn-sm btn-icon btn-light btn-active-light-primary"
+                                           title="Edit agent"
+                                           aria-label="Edit agent">
+                                            <i class="ki-duotone ki-pencil fs-2">
+                                                <span class="path1"></span>
+                                                <span class="path2"></span>
+                                            </i>
+                                        </a>
+                                        <form method="post" action="/agents/{{ agent.id }}/delete" class="d-inline"
+                                              onsubmit="return confirm('Delete agent {{ agent.name }}?');">
+                                            <button type="submit"
+                                                    class="btn btn-sm btn-icon btn-light btn-active-light-danger"
+                                                    title="Delete agent"
+                                                    aria-label="Delete agent">
+                                                <i class="ki-duotone ki-trash fs-2">
+                                                    <span class="path1"></span>
+                                                    <span class="path2"></span>
+                                                    <span class="path3"></span>
+                                                    <span class="path4"></span>
+                                                    <span class="path5"></span>
+                                                </i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% include "partials/pagination.html" %}
+                {% else %}
+                <div class="text-center py-15">
+                    <p class="text-gray-600 fs-6 mb-6">No agents yet. Create one or restart the app to load default seeds.</p>
+                    <a href="/agents/new" class="btn btn-primary">Create your first agent</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
