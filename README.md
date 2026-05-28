@@ -223,7 +223,7 @@ Details: [docs/deployment/README.md](docs/deployment/README.md)
 The recording covers:
 - Creating and configuring agents in the web UI
 - Building a workflow in the visual graph editor
-- Running the **5-agent product launch pipeline** end-to-end
+- Running the **6-agent Software development pipeline** end-to-end
 - Live monitoring (logs, inter-agent messages, token/cost per run)
 - Human triggering the pipeline via Telegram (`/launch`) and receiving the final announcement reply
 
